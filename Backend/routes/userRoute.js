@@ -101,7 +101,7 @@ userRouter.post(
 // =====================================================
 
 userRouter.post(
-  "/verifyRazorpay",
+  "/verify-razorpay",
   authUser,
   verifyRazorpay
 );

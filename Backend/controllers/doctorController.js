@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import { v2 as cloudinary } from "cloudinary";
 import mongoose from "mongoose";
 import doctorModel from "../models/doctorModel.js";
+import jwt from 'jsonwebtoken';
 
 // API for adding doctor
 const addDoctor = async (req, res) => {
@@ -144,5 +145,29 @@ const doctorList= async(req,res) =>{
     });
   }
 }
+//API for doctor login 
+const loginDoctor = async(req,res)=>{
+  try{
+     const{email, password} =req.body
+     const doctor =await doctorModel.findOne({email})
+     if(!doctor) {
+      return res.json({success:false, message:'Invalid Credentials'})
+     }
+      const isMatch =await bcrypt.compare(password,doctor.password)
+      if(isMatch) {
+          const token = jwt.sign({id:doctor._id},process.env.JWT_SECRET)
+          res.json({success:true, token})
+      }  else{
+         res.json({success:false, message:'Invalid Credentials'})
+      }
+  }catch(error){
+     console.log(error);
 
-export { addDoctor, changeAvailability,doctorList };
+    res.json({
+      success: false,
+      message: error.message,
+    });
+  }
+}
+
+export { addDoctor, changeAvailability,doctorList , loginDoctor };

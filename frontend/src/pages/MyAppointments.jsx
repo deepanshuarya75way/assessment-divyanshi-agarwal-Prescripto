@@ -81,20 +81,14 @@ const MyAppointments = () => {
       console.log("APPOINTMENTS RESPONSE:", data);
 
       if (data.success) {
-        setAppointments(
-          [...data.appointments].reverse()
-        );
+        setAppointments([...data.appointments].reverse());
       } else {
         toast.error(
-          data.message ||
-            "Unable to fetch appointments"
+          data.message || "Unable to fetch appointments"
         );
       }
     } catch (error) {
-      console.log(
-        "GET APPOINTMENTS ERROR:",
-        error
-      );
+      console.log("GET APPOINTMENTS ERROR:", error);
 
       toast.error(
         error.response?.data?.message ||
@@ -108,13 +102,10 @@ const MyAppointments = () => {
   // CANCEL APPOINTMENT
   // =====================================================
 
-  const cancelAppointment = async (
-    appointmentId
-  ) => {
+  const cancelAppointment = async (appointmentId) => {
     try {
       const { data } = await axios.post(
-        backendUrl +
-          "/api/user/cancel-appointment",
+        backendUrl + "/api/user/cancel-appointment",
         {
           appointmentId,
         },
@@ -125,15 +116,11 @@ const MyAppointments = () => {
         }
       );
 
-      console.log(
-        "CANCEL RESPONSE:",
-        data
-      );
+      console.log("CANCEL RESPONSE:", data);
 
       if (data.success) {
         toast.success(
-          data.message ||
-            "Appointment Cancelled"
+          data.message || "Appointment Cancelled"
         );
 
         await getUserAppointments();
@@ -143,8 +130,7 @@ const MyAppointments = () => {
         }
       } else {
         toast.error(
-          data.message ||
-            "Unable to cancel appointment"
+          data.message || "Unable to cancel appointment"
         );
       }
     } catch (error) {
@@ -165,86 +151,30 @@ const MyAppointments = () => {
   // RAZORPAY PAYMENT
   // =====================================================
 
-  const initPay = (
-    order,
-    appointmentId
-  ) => {
+  const initPay = (order, appointmentId) => {
     if (!window.Razorpay) {
-      toast.error(
-        "Razorpay SDK is not loaded"
-      );
+      toast.error("Razorpay SDK is not loaded");
       return;
     }
 
-    console.log(
-      "OPENING RAZORPAY:",
-      order
-    );
+    console.log("OPENING RAZORPAY:", order);
 
     // =================================================
     // RAZORPAY OPTIONS
     // =================================================
 
     const options = {
-      key: import.meta.env
-        .VITE_RAZORPAY_KEY_ID,
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID,
 
       amount: order.amount,
 
-      currency:
-        order.currency || "INR",
+      currency: order.currency || "INR",
 
       name: "Prescripto",
 
-      description:
-        "Doctor Appointment Payment",
+      description: "Doctor Appointment Payment",
 
       order_id: order.id,
-
-      // =================================================
-      // PAYMENT METHODS
-      // UPI FIRST
-      // =================================================
-
-      config: {
-        display: {
-          blocks: {
-            payment_methods: {
-              name: "Payment Methods",
-
-              instruments: [
-                {
-                  method: "upi",
-                },
-
-                {
-                  method: "card",
-                },
-
-                {
-                  method: "netbanking",
-                },
-
-                {
-                  method: "wallet",
-                },
-
-                {
-                  method: "paylater",
-                },
-              ],
-            },
-          },
-
-          sequence: [
-            "block.payment_methods",
-          ],
-
-          preferences: {
-            show_default_blocks: false,
-          },
-        },
-      },
 
       // =================================================
       // SUCCESS HANDLER
@@ -257,30 +187,26 @@ const MyAppointments = () => {
         );
 
         try {
-          const { data } =
-            await axios.post(
-              backendUrl +
-                "/api/user/verify-razorpay",
+          const { data } = await axios.post(
+            backendUrl + "/api/user/verify-razorpay",
+            {
+              razorpay_order_id:
+                response.razorpay_order_id,
 
-              {
-                razorpay_order_id:
-                  response.razorpay_order_id,
+              razorpay_payment_id:
+                response.razorpay_payment_id,
 
-                razorpay_payment_id:
-                  response.razorpay_payment_id,
+              razorpay_signature:
+                response.razorpay_signature,
 
-                razorpay_signature:
-                  response.razorpay_signature,
-
-                appointmentId,
+              appointmentId,
+            },
+            {
+              headers: {
+                token,
               },
-
-              {
-                headers: {
-                  token,
-                },
-              }
-            );
+            }
+          );
 
           console.log(
             "VERIFY PAYMENT RESPONSE:",
@@ -310,8 +236,7 @@ const MyAppointments = () => {
           );
 
           toast.error(
-            error.response?.data
-              ?.message ||
+            error.response?.data?.message ||
               error.message ||
               "Payment verification failed"
           );
@@ -358,8 +283,7 @@ const MyAppointments = () => {
     // CREATE RAZORPAY INSTANCE
     // =================================================
 
-    const rzp =
-      new window.Razorpay(options);
+    const rzp = new window.Razorpay(options);
 
     // =================================================
     // PAYMENT FAILED
@@ -384,8 +308,7 @@ const MyAppointments = () => {
         );
 
         toast.error(
-          response.error
-            ?.description ||
+          response.error?.description ||
             "Payment failed"
         );
       }
@@ -411,21 +334,17 @@ const MyAppointments = () => {
         appointmentId
       );
 
-      const { data } =
-        await axios.post(
-          backendUrl +
-            "/api/user/payment-razorpay",
-
-          {
-            appointmentId,
+      const { data } = await axios.post(
+        backendUrl + "/api/user/payment-razorpay",
+        {
+          appointmentId,
+        },
+        {
+          headers: {
+            token,
           },
-
-          {
-            headers: {
-              token,
-            },
-          }
-        );
+        }
+      );
 
       console.log(
         "RAZORPAY ORDER RESPONSE:",
@@ -450,10 +369,8 @@ const MyAppointments = () => {
       );
 
       toast.error(
-        error.response?.data
-          ?.message ||
-          error.response?.data
-            ?.error ||
+        error.response?.data?.message ||
+          error.response?.data?.error ||
           error.message ||
           "Unable to create payment"
       );
@@ -486,157 +403,125 @@ const MyAppointments = () => {
             No appointments found.
           </p>
         ) : (
-          appointments.map(
-            (item, index) => (
-              <div
-                key={
-                  item._id || index
-                }
-                className="grid grid-cols-[1fr_2fr] gap-4 sm:flex sm:gap-6 py-5 border-b"
-              >
-                {/* ============================= */}
-                {/* DOCTOR IMAGE */}
-                {/* ============================= */}
+          appointments.map((item, index) => (
+            <div
+              key={item._id || index}
+              className="grid grid-cols-[1fr_2fr] gap-4 sm:flex sm:gap-6 py-5 border-b"
+            >
+              {/* ============================= */}
+              {/* DOCTOR IMAGE */}
+              {/* ============================= */}
 
-                <div>
-                  <img
-                    className="w-32 h-32 object-cover bg-indigo-50 rounded"
-                    src={
-                      item.docData?.image
-                    }
-                    alt={
-                      item.docData?.name ||
-                      "Doctor"
-                    }
-                  />
-                </div>
+              <div>
+                <img
+                  className="w-32 h-32 object-cover bg-indigo-50 rounded"
+                  src={item.docData?.image}
+                  alt={
+                    item.docData?.name ||
+                    "Doctor"
+                  }
+                />
+              </div>
 
-                {/* ============================= */}
-                {/* DOCTOR DETAILS */}
-                {/* ============================= */}
+              {/* ============================= */}
+              {/* DOCTOR DETAILS */}
+              {/* ============================= */}
 
-                <div className="flex-1 text-sm text-zinc-600">
-                  <p className="text-neutral-800 font-semibold">
-                    {
-                      item.docData
-                        ?.name
-                    }
-                  </p>
+              <div className="flex-1 text-sm text-zinc-600">
+                <p className="text-neutral-800 font-semibold">
+                  {item.docData?.name}
+                </p>
 
-                  <p>
-                    {
-                      item.docData
-                        ?.speciality
-                    }
-                  </p>
+                <p>
+                  {item.docData?.speciality}
+                </p>
 
-                  <p className="text-zinc-700 font-medium mt-2">
-                    Address:
-                  </p>
+                <p className="text-zinc-700 font-medium mt-2">
+                  Address:
+                </p>
 
-                  <p className="text-xs">
-                    {
-                      item.docData
-                        ?.address
-                        ?.line1
-                    }
-                  </p>
+                <p className="text-xs">
+                  {item.docData?.address?.line1}
+                </p>
 
-                  <p className="text-xs">
-                    {
-                      item.docData
-                        ?.address
-                        ?.line2
-                    }
-                  </p>
+                <p className="text-xs">
+                  {item.docData?.address?.line2}
+                </p>
 
-                  <p className="text-xs mt-2">
-                    <span className="text-sm text-neutral-700 font-medium">
-                      Date & Time:
-                    </span>
+                <p className="text-xs mt-2">
+                  <span className="text-sm text-neutral-700 font-medium">
+                    Date & Time:
+                  </span>{" "}
+                  {slotDateFormat(item.slotDate)}
+                  {" | "}
+                  {item.slotTime}
+                </p>
+              </div>
 
-                    {" "}
+              {/* ============================= */}
+              {/* BUTTONS */}
+              {/* ============================= */}
 
-                    {slotDateFormat(
-                      item.slotDate
-                    )}
+              <div className="flex flex-col gap-2 justify-end">
 
-                    {" | "}
+                {/* ========================= */}
+                {/* PAY ONLINE */}
+                {/* ========================= */}
 
-                    {
-                      item.slotTime
-                    }
-                  </p>
-                </div>
-
-                {/* ============================= */}
-                {/* BUTTONS */}
-                {/* ============================= */}
-
-                <div className="flex flex-col gap-2 justify-end">
-
-                  {/* ========================= */}
-                  {/* PAY ONLINE */}
-                  {/* ========================= */}
-
-                  {!item.cancelled &&
-                    !item.payment && (
-                      <button
-                        onClick={() =>
-                          appointmentRazorpay(
-                            item._id
-                          )
-                        }
-                        className="text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:bg-primary hover:text-white transition-all duration-300"
-                      >
-                        Pay Online
-                      </button>
-                    )}
-
-                  {/* ========================= */}
-                  {/* PAID */}
-                  {/* ========================= */}
-
-                  {item.payment && (
+                {!item.cancelled &&
+                  !item.payment && (
                     <button
-                      disabled
-                      className="text-sm text-green-600 bg-green-50 text-center sm:min-w-48 py-2 border rounded cursor-not-allowed"
+                      onClick={() =>
+                        appointmentRazorpay(
+                          item._id
+                        )
+                      }
+                      className="text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:bg-primary hover:text-white transition-all duration-300"
                     >
-                      Payment Done ✓
+                      Pay Online
                     </button>
                   )}
 
-                  {/* ========================= */}
-                  {/* CANCEL */}
-                  {/* ========================= */}
+                {/* ========================= */}
+                {/* PAID */}
+                {/* ========================= */}
 
+                {item.payment && (
                   <button
-                    onClick={() => {
-                      if (
-                        !item.cancelled
-                      ) {
-                        cancelAppointment(
-                          item._id
-                        );
-                      }
-                    }}
-                    disabled={
-                      item.cancelled
-                    }
-                    className={`text-sm text-center sm:min-w-48 py-2 border rounded transition-all duration-300 ${
-                      item.cancelled
-                        ? "text-gray-400 bg-gray-100 cursor-not-allowed"
-                        : "text-stone-500 hover:bg-red-600 hover:text-white"
-                    }`}
+                    disabled
+                    className="text-sm text-green-600 bg-green-50 text-center sm:min-w-48 py-2 border rounded cursor-not-allowed"
                   >
-                    {item.cancelled
-                      ? "Appointment Cancelled"
-                      : "Cancel Appointment"}
+                    Payment Done ✓
                   </button>
-                </div>
+                )}
+
+                {/* ========================= */}
+                {/* CANCEL */}
+                {/* ========================= */}
+
+                <button
+                  onClick={() => {
+                    if (!item.cancelled) {
+                      cancelAppointment(
+                        item._id
+                      );
+                    }
+                  }}
+                  disabled={item.cancelled}
+                  className={`text-sm text-center sm:min-w-48 py-2 border rounded transition-all duration-300 ${
+                    item.cancelled
+                      ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                      : "text-stone-500 hover:bg-red-600 hover:text-white"
+                  }`}
+                >
+                  {item.cancelled
+                    ? "Appointment Cancelled"
+                    : "Cancel Appointment"}
+                </button>
+
               </div>
-            )
-          )
+            </div>
+          ))
         )}
       </div>
     </div>

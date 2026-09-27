@@ -54,7 +54,6 @@ const addDoctor = async (req, res) => {
       });
     }
 
-    // Check if the doctor already exists
     const doctorExists = await doctorModel.findOne({ email });
 
     if (doctorExists) {
@@ -64,14 +63,15 @@ const addDoctor = async (req, res) => {
       });
     }
 
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Upload image to Cloudinary
-    const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
-      resource_type: "image",
-    });
+    const imageUpload = await cloudinary.uploader.upload(
+      imageFile.path,
+      {
+        resource_type: "image",
+      }
+    );
 
     const doctorData = {
       name,
@@ -92,14 +92,67 @@ const addDoctor = async (req, res) => {
 
     await newDoctor.save();
 
-    return res.json({
+    res.json({
       success: true,
       message: "Doctor Added",
     });
   } catch (error) {
     console.log(error);
 
-    return res.json({
+    res.json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// API for changing doctor availability
+const changeAvailability = async (req, res) => {
+  try {
+    const { docId } = req.body;
+
+    const doctorData = await doctorModel.findById(docId);
+
+    if (!doctorData) {
+      return res.json({
+        success: false,
+        message: "Doctor not found",
+      });
+    }
+
+    await doctorModel.findByIdAndUpdate(docId, {
+      available: !doctorData.available,
+    });
+
+    res.json({
+      success: true,
+      message: "Availability Changed",
+    });
+  } catch (error) {
+    console.log(error);
+
+    res.json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// API for getting all doctors
+const allDoctors = async (req, res) => {
+  try {
+    const doctors = await doctorModel
+      .find({})
+      .select("-password");
+
+    res.json({
+      success: true,
+      doctors,
+    });
+  } catch (error) {
+    console.log(error);
+
+    res.json({
       success: false,
       message: error.message,
     });
@@ -134,45 +187,89 @@ const loginAdmin = async (req, res) => {
   } catch (error) {
     console.log(error);
 
-    return res.json({
+    res.json({
       success: false,
       message: error.message,
     });
   }
 };
 
-// API for all doctors
-const allDoctors = async (req, res) => {
+// API for getting all appointments
+const appointmentsAdmin = async (req, res) => {
   try {
-    const doctors = await doctorModel.find({}).select("-password");
+    const appointments = await appointmentModel.find({});
 
-    return res.json({
+    res.json({
       success: true,
-      doctors,
+      appointments,
     });
   } catch (error) {
     console.log(error);
 
-    return res.json({
+    res.json({
       success: false,
       message: error.message,
     });
   }
 };
 
-const appointmentsAdmin = async(req,res) =>{
-  try{
-    const appointments = await appointmentModel.find({})
-     res.json({success:true.appointments})
-  } catch(error){
- console.log(error);
+// API for resetting doctor password
+const resetDoctorPassword = async (req, res) => {
+  try {
+    const { docId, newPassword } = req.body;
 
-    return res.json({
+    if (!docId || !newPassword) {
+      return res.json({
+        success: false,
+        message: "Doctor ID and new password are required",
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.json({
+        success: false,
+        message: "Password must be at least 8 characters",
+      });
+    }
+
+    const doctor = await doctorModel.findById(docId);
+
+    if (!doctor) {
+      return res.json({
+        success: false,
+        message: "Doctor not found",
+      });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(
+      newPassword,
+      salt
+    );
+
+    doctor.password = hashedPassword;
+
+    await doctor.save();
+
+    res.json({
+      success: true,
+      message: "Doctor password reset successfully",
+    });
+  } catch (error) {
+    console.log(error);
+
+    res.json({
       success: false,
       message: error.message,
     });
-
   }
-}
+};
 
-export { addDoctor, loginAdmin, allDoctors,appointmentsAdmin };
+export {
+  addDoctor,
+  changeAvailability,
+  allDoctors,
+  loginAdmin,
+  appointmentsAdmin,
+  resetDoctorPassword,
+};

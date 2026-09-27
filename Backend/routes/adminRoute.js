@@ -1,53 +1,56 @@
 import express from "express";
 
 import {
-    addDoctor,
-    loginAdmin,
-    allDoctors,
-    appointmentsAdmin
+  addDoctor,
+  changeAvailability,
+  allDoctors,
+  loginAdmin,
+  appointmentsAdmin,
+  resetDoctorPassword,
 } from "../controllers/adminController.js";
 
 import upload from "../middlewares/multer.js";
-
 import authAdmin from "../middlewares/authAdmin.js";
-
-import { changeAvailability } from "../controllers/doctorController.js";
 
 const adminRouter = express.Router();
 
-// Add Doctor
+// Admin login
+adminRouter.post("/login", loginAdmin);
+
+// Add doctor
 adminRouter.post(
-    "/add-doctor",
-    authAdmin,
-    upload.single("image"),
-    addDoctor
+  "/add-doctor",
+  authAdmin,
+  upload.single("image"),
+  addDoctor
 );
 
-// Admin Login
+// Get all doctors
 adminRouter.post(
-    "/login",
-    loginAdmin
+  "/all-doctors",
+  authAdmin,
+  allDoctors
 );
 
-// All Doctors
+// Change doctor availability
 adminRouter.post(
-    "/all-doctors",
-    authAdmin,
-    allDoctors
+  "/change-availability",
+  authAdmin,
+  changeAvailability
 );
 
-// Change Doctor Availability
-adminRouter.post(
-    "/change-availability",
-    authAdmin,
-    changeAvailability
-);
-
-// All Appointments
+// Get all appointments
 adminRouter.get(
-    "/appointments",
-    authAdmin,
-    appointmentsAdmin
+  "/appointments",
+  authAdmin,
+  appointmentsAdmin
+);
+
+// Reset doctor password
+adminRouter.post(
+  "/reset-doctor-password",
+  authAdmin,
+  resetDoctorPassword
 );
 
 export default adminRouter;
