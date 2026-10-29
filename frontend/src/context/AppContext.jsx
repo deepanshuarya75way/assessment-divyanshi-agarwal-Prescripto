@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 export const AppContext = createContext();
 
 const AppContextProvider = ({ children }) => {
-  const backendUrl = "http://localhost:";
+  const backendUrl = "http://localhost:5000";
 
   const [doctors, setDoctors] = useState([]);
   const [userData, setUserData] = useState(false);
