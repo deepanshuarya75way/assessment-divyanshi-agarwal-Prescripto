@@ -530,23 +530,10 @@ const cancelAppointment = async (req, res) => {
 const paymentRazorpay = async (req, res) => {
   try {
 
-    const userId = req.userId;
+  const { appointmentId } = req.body;
+  const {userId} =req.body
 
-    const { appointmentId } = req.body;
 
-    if (!userId) {
-      return res.json({
-        success: false,
-        message: "User not authenticated",
-      });
-    }
-
-    if (!appointmentId) {
-      return res.json({
-        success: false,
-        message: "Appointment ID is required",
-      });
-    }
 
     const appointmentData =
       await appointmentModel.findById(
@@ -560,33 +547,29 @@ const paymentRazorpay = async (req, res) => {
       });
     }
 
-    if (
-      String(appointmentData.userId) !==
-      String(userId)
-    ) {
-      return res.json({
+    if (appointmentData.userId.toString()!== userId.toString() && appointmentData.userId.toString()!== req.body.userId?.toString()){
+
+    }
+    if(appointmentData.userId.toString()!== userId && appointmentData.userId.toString()!== (req.userId || "")){
+      const tokenUserId= req.userId|| userId;
+      if(appointmentData.userId.toString()!==tokenUserId.toString()){
+        return res.json({
         success: false,
-        message: "Unauthorized action",
+        message: "Unauthorized action -Appointment ownership failed",
       });
+      }
     }
 
     if (appointmentData.cancelled) {
       return res.json({
         success: false,
-        message: "Appointment is already cancelled",
+        message: "Appointment is cancelled",
       });
     }
-
-    if (
-      !appointmentData.amount ||
-      appointmentData.amount <= 0
-    ) {
-      return res.json({
-        success: false,
-        message: "Invalid appointment amount",
-      });
-    }
-
+  if(appointmentData.payment){
+    return res.json({success:false,message:"Already Paid"})
+  }
+    
     const options = {
       amount: Math.round(
         appointmentData.amount * 100
@@ -645,34 +628,20 @@ const paymentRazorpay = async (req, res) => {
 
 const verifyRazorpay = async (req, res) => {
   try {
-
-    const userId = req.userId;
-
-    const {
+   const {
       razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature,
       appointmentId,
     } = req.body;
 
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "User not authenticated",
-      });
-    }
+   
 
-    if (
-      !razorpay_order_id ||
-      !razorpay_payment_id ||
-      !razorpay_signature ||
-      !appointmentId
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing payment details",
-      });
-    }
+   await appointmentModel.findByIdAndUpdate(appointmentId ,{payment:true})
+   res.json({sucess:true, message:"Payment SucessFul"})}
+   catch(error){
+    console.log(error)
+    res.json({success:false, message:error.message})}}
 
     const appointmentData =
       await appointmentModel.findById(
@@ -742,8 +711,7 @@ const verifyRazorpay = async (req, res) => {
       success: true,
       message: "Payment Verified Successfully",
     });
-
-  } catch (error) {
+   } catch (error) {
 
     console.log(
       "VERIFY RAZORPAY ERROR:",
@@ -757,7 +725,6 @@ const verifyRazorpay = async (req, res) => {
         "Payment verification failed",
     });
   }
-};
 
 // =====================================================
 // EXPORT
