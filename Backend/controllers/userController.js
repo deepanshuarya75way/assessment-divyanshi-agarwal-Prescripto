@@ -628,7 +628,9 @@ const paymentRazorpay = async (req, res) => {
 
 const verifyRazorpay = async (req, res) => {
   try {
-   const {
+
+
+    const {
       razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature,
@@ -637,11 +639,17 @@ const verifyRazorpay = async (req, res) => {
 
    
 
-   await appointmentModel.findByIdAndUpdate(appointmentId ,{payment:true})
-   res.json({sucess:true, message:"Payment SucessFul"})}
-   catch(error){
-    console.log(error)
-    res.json({success:false, message:error.message})}}
+    if (
+      !razorpay_order_id ||
+      !razorpay_payment_id ||
+      !razorpay_signature ||
+      !appointmentId
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing payment details",
+      });
+    }
 
     const appointmentData =
       await appointmentModel.findById(
@@ -711,7 +719,8 @@ const verifyRazorpay = async (req, res) => {
       success: true,
       message: "Payment Verified Successfully",
     });
-   } catch (error) {
+
+  } catch (error) {
 
     console.log(
       "VERIFY RAZORPAY ERROR:",
@@ -725,6 +734,7 @@ const verifyRazorpay = async (req, res) => {
         "Payment verification failed",
     });
   }
+};
 
 // =====================================================
 // EXPORT
