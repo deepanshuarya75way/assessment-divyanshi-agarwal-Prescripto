@@ -18,10 +18,10 @@ const doctors= [{
 
 },
 ] 
-const uri=process.env.MONGODB_URI ||"mongodb://127.0.0.1:27017/prescripto"
-mongoose.connect(uri).then(async()=>{
-  console.log("Mongo Connected")
-await doctorModel.deleteMany(doctors)
+mongoose.connect(`${process.env.MONGODB-URI0/prescripto}`).then(async()=>{
+
+  console.log("Mongo Connected");
+await doctorModel.deleteMany({})
 await doctorModel.insertMany(doctors)
 console.log(`${doctors.length}Doctors added succesfully!`)
 process.exit()

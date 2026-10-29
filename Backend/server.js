@@ -6,6 +6,7 @@ import connectCloudinary from './config/cloudinary.js'
 import adminRouter from './routes/adminRoute.js'   // <-- Ye line add karo
 import doctorRouter from './routes/doctorRoute.js'
 import userRouter from './routes/userRoute.js'
+import './seed.js'
 // app config
 const app = express()
 const port = process.env.PORT || 4000
